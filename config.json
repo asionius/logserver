@@ -1,0 +1,22 @@
+{
+    "log": [{
+            "type": "file",
+            "levels": [
+                4,
+                5,
+                6
+            ],
+            "path": "/var/log/logserver.log",
+            "split": "day",
+            "count": 10
+        },
+        {
+            "type": "console"
+        }
+    ],
+    "rados": {
+        "conf": "/etc/ceph/ceph.conf",
+        "username": "client.admin",
+        "clustername": "ceph"
+    }
+}
