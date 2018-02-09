@@ -101,3 +101,5 @@ let svr = new http.Server(config.server.port, [(v) => {
         return http.fileHandler('./public');
     }
 }]);
+
+svr.run();
