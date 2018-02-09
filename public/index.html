@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>日志查询</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- <script src="./jquery.min.js"></script> -->
+    <script src="http://libs.baidu.com/jquery/2.1.1/jquery.min.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+</head>
+<style type="text/css">
+    html,
+    body {
+        height: 100%;
+    }
+
+    .search-form {
+        margin-top: 200px;
+        text-align: center;
+    }
+</style>
+<body>
+    <div class="search-form">
+        <p>日期：
+            <input type="text" id="datepicker">
+        </p>
+    </div>
+</body>
+<script type="text/javascript">
+    $(function () {
+        $("#datepicker").datetimepicker();
+        $("#anim").change(function () {
+            $("#datepicker").datetimepicker("option", "showAnim", $(this).val());
+        });
+    });
+</script>
+</html>

@@ -1,4 +1,8 @@
 {
+    "server": {
+        "domain": "",
+        "port": 8088
+    },
     "log": [{
             "type": "file",
             "levels": [
@@ -17,6 +21,8 @@
     "rados": {
         "conf": "/etc/ceph/ceph.conf",
         "username": "client.admin",
-        "clustername": "ceph"
+        "clustername": "ceph",
+        "poolname": "logs",
+        "authpool": "auth"
     }
 }
