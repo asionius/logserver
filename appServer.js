@@ -19,7 +19,7 @@ let svr = new http.Server(config.server.port, [(v) => {
     let jws = v.cookies['jws'];
     v.jws = jws;
 }, {
-    'signup': (v) => {
+    '/signup': (v) => {
         let username = v.form.username;
         let phone = v.form.phone;
         let password = v.form.password;
@@ -32,7 +32,7 @@ let svr = new http.Server(config.server.port, [(v) => {
             msg: "success"
         })
     },
-    'login': (v) => {
+    '/login': (v) => {
         let username = v.form.username;
         let password = v.form.password;
         let userInfo = rados.getUser(username);
@@ -55,7 +55,7 @@ let svr = new http.Server(config.server.port, [(v) => {
             msg: "password or username wrong"
         })
     },
-    '_search': (v) => {
+    '/_search': (v) => {
         if (!v.jws || !jws.verify(v.jws, pubPem)) {
             response(v, {
                 code: 3000,
@@ -97,9 +97,15 @@ let svr = new http.Server(config.server.port, [(v) => {
             data: ret.join('\n')
         });
     },
-    '*': (v) => {
-        return http.fileHandler('./public');
-    }
+    '*': (v) => [http.fileHandler('./public'),
+        (v, url) => {
+            if (/\/(login)|(signup)|(search).*/.test(url)) {
+                v.response.addHeader('Content-Type', 'text/html');
+                v.response.body = fs.openFile('./public/index.html');
+                v.response.statusCode = 200;
+            }
+        }
+    ]
 }]);
 
 svr.run();
