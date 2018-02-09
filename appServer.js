@@ -19,7 +19,7 @@ let svr = new http.Server(config.server.port, [(v) => {
     let jws = v.cookies['jws'];
     v.jws = jws;
 }, {
-    '/signup': (v) => {
+    '/_signup': (v) => {
         let username = v.form.username;
         let phone = v.form.phone;
         let password = v.form.password;
@@ -32,7 +32,7 @@ let svr = new http.Server(config.server.port, [(v) => {
             msg: "success"
         })
     },
-    '/login': (v) => {
+    '/_login': (v) => {
         let username = v.form.username;
         let password = v.form.password;
         let userInfo = rados.getUser(username);
