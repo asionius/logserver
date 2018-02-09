@@ -20,9 +20,10 @@ let svr = new http.Server(config.server.port, [(v) => {
     v.jws = jws;
 }, {
     '/_signup': (v) => {
-        let username = v.form.username;
-        let phone = v.form.phone;
-        let password = v.form.password;
+        let form = v.json();
+        let username = form.username;
+        let phone = form.phone;
+        let password = form.password;
         rados.setUser(username, {
             password: password,
             phone: phone
@@ -33,8 +34,9 @@ let svr = new http.Server(config.server.port, [(v) => {
         })
     },
     '/_login': (v) => {
-        let username = v.form.username;
-        let password = v.form.password;
+        let form = v.json();
+        let username = form.username;
+        let password = form.password;
         let userInfo = rados.getUser(username);
         if (userInfo.password === password) {
             let signature = jws.sign({
@@ -63,7 +65,7 @@ let svr = new http.Server(config.server.port, [(v) => {
             })
             return;
         }
-        let form = v.form.toJSON();
+        let form = v.json();
         let servers = form.servers;
         let timeRange = form.TimeRange;
         let content = form.content;
