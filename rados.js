@@ -10,8 +10,9 @@ require('./dateFormat');
 let eolReg = hs.compile("\n", "L");
 
 let cluster = new rados.Rados(config.clustername, config.username, config.conf);
+cluster.connect();
+
 let radosPool = pool(() => {
-    cluster.connect();
     return cluster.createIoCtx(config.poolname)
 })
 let authPool = pool(() => {
