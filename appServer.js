@@ -67,7 +67,7 @@ let svr = new http.Server(config.server.port, [(v) => {
         }
         let form = v.json();
         let servers = form.servers;
-        let timeRange = form.TimeRange;
+        let timeRange = form.timeRange;
         let content = form.content;
         if (!servers || servers.length === 0) {
             let errMsg = "search: servers is null"
@@ -110,4 +110,5 @@ let svr = new http.Server(config.server.port, [(v) => {
     ]
 }]);
 
+console.log('server start running ...');
 svr.run();
