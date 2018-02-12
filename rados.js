@@ -145,7 +145,8 @@ function search1(servers, timeRange, content) {
             uzs = zlib.createGunzip(ms);
             while (stream.copyTo(uzs, 1000000) !== 0) {
                 ms.seek(pos, fs.SEEK_SET);
-                let data = ms.readAll().toString();
+                let buf = ms.readAll();
+                let data = buf.toString();
                 pos = ms.tell();
                 let lines = data.split('\n');
                 lines.forEach((line) => {
