@@ -158,6 +158,7 @@ function search1(servers, timeRange, content) {
             ms.close();
             uzs.close();
             stream.close();
+            GC();
         })
     });
     return ret;
