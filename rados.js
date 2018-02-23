@@ -56,72 +56,33 @@ function splitTime(timeRange) {
 function search(servers, timeRange, content) {
     let ret = [];
     content = content.replace(/([\?\-\*\.\/\|])/g, '\\$1');
+    content = "[^\n]*" + content +".*\n";
     let hsReg = hs.compile(content, "L");
     timeRange = splitTime(timeRange);
     servers.forEach(svr => {
         timeRange.forEach((time) => {
             let stream = radosPool((conn) => {
                 let key = svr + '/' + time;
+                console.log(key);
                 return conn.open(key);
             });
-            let buf, ms, uzs, left, eolRes, pos = 0;
-            let cpTime = 0,
-                scTime = 0,
-                cpSum = 0,
-                scSum = 0;
+            let buf, ms, uzs, eolRes, pos = 0, len, sum = 0;
             ms = new io.MemoryStream();
             uzs = zlib.createGunzip(ms);
-            let t0 = new Date().getTime();
+            // console.log(`stream size: ${stream.size()}`);
             while (stream.copyTo(uzs, 1000000) !== 0) {
+                sum += len;
+                // console.log(`sum: ${sum}`)
                 ms.seek(pos, fs.SEEK_SET);
                 buf = ms.read();
                 pos = ms.tell();
-                let t = new Date().getTime();
-                cpTime = t - t0;
-                cpSum += cpTime;
-                if (left)
-                    buf = Buffer.concat([left, buf]);
-
-                eolRes = eolReg.scan(buf);
-                if (!eolRes) {
-                    left = buf;
-                    t0 = new Date().getTime();
-                    continue;
-                }
-                let len = eolRes['\n'].length;
-                let lid = eolRes['\n'][len - 1][1];
-                left = buf.slice(lid, buf.length);
-                buf = buf.slice(0, lid);
                 let hsRes = hsReg.scan(buf);
-                if (!hsRes) {
-                    t0 = new Date().getTime();
+                if (!hsRes)
                     continue;
-                }
-                let lline = 0;
                 hsRes[content].forEach((pair) => {
-                    for (var i = lline; i < eolRes['\n'].length; i++) {
-                        let eolPair = eolRes['\n'][i];
-
-                        if (pair[1] < eolPair[1]) {
-                            lline = i;
-                            if (lline === 0) {
-                                let rs = buf.slice(0, eolPair[0]).toString()
-                                ret.push(rs)
-                            } else {
-                                let lastPair = eolRes['\n'][i - 1];
-                                let rs = buf.slice(lastPair[1], eolPair[0]).toString()
-                                ret.push(rs);
-                            }
-                            break;
-                        }
-                    }
+                    ret.push(buf.slice(pair[0], pair[1]).toString());
                 })
-                t0 = new Date().getTime();
             }
-            if (hsReg.scan(left)) {
-                ret.push(left.toString());
-            }
-            console.log('cp time total', cpSum);
             ms.close();
             uzs.close();
             stream.close();
@@ -132,23 +93,28 @@ function search(servers, timeRange, content) {
 
 function search1(servers, timeRange, content) {
     let ret = [];
+    let stream, ms, bs, uzs, pos = 0, buf, data, lines, len, sum = 0;
     timeRange = splitTime(timeRange);
-    servers.forEach(svr => {
-        timeRange.forEach((time) => {
-            let stream = radosPool((conn) => {
-                let key = svr + '/' + time;
+    for(let j in servers) {
+        for(let i in timeRange) {
+            sum = 0;
+            pos = 0;
+            stream = radosPool((conn) => {
+                let key = servers[j] + '/' + timeRange[i];
+                console.log(key);
                 return conn.open(key);
             });
-            let ms, bs, uzs, pos = 0;
             ms = new io.MemoryStream();
-            bs = new io.BufferedStream(ms);
             uzs = zlib.createGunzip(ms);
-            while (stream.copyTo(uzs, 1000000) !== 0) {
+            console.log('size ' + stream.size());
+            while ((len = stream.copyTo(uzs, 1000000)) !== 0) {
+                sum += len;
+                console.log('sum ' + sum)
                 ms.seek(pos, fs.SEEK_SET);
-                let buf = ms.readAll();
-                let data = buf.toString();
+                buf = ms.readAll();
+                data = buf.toString();
                 pos = ms.tell();
-                let lines = data.split('\n');
+                lines = data.split('\n');
                 lines.forEach((line) => {
                     if (line.indexOf(content) > -1) {
                         ret.push(line);
@@ -158,13 +124,12 @@ function search1(servers, timeRange, content) {
             ms.close();
             uzs.close();
             stream.close();
-            GC();
-        })
-    });
+        }
+    }
     return ret;
 }
 module.exports = {
-    search: search1,
+    search: search,
     getUser: getUser,
     setUser: setUser
 };
