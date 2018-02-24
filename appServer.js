@@ -99,7 +99,13 @@ let svr = new http.Server(config.server.port, [(v) => {
         let ret = rados.search(servers, timeRange, content);
         let res = ret.join('\n');
         if (generateDownloadFile)
+        {
             fs.writeFile(path.join(__dirname, 'public/result.txt'), res);
+            response(v, {
+                code: 0
+            });
+            return;
+        }
         response(v, {
             code: 0,
             data: res
