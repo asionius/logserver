@@ -2,6 +2,7 @@ const uuid = require('uuid');
 const http = require('http');
 const hash = require('hash');
 const fs = require('fs');
+const hash = require('hash');
 const path = require('path');
 const jws = require('fib-jws');
 const rados = require('./rados');
@@ -26,7 +27,7 @@ let svr = new http.Server(config.server.port, [(v) => {
         let phone = form.phone;
         let password = form.password;
         rados.setUser(username, {
-            password: password,
+            password: hash.md5(password).digest().toString('hex'),
             phone: phone
         })
         response(v, {
@@ -39,7 +40,7 @@ let svr = new http.Server(config.server.port, [(v) => {
         let username = form.username;
         let password = form.password;
         let userInfo = rados.getUser(username);
-        if (userInfo.password === password) {
+        if (userInfo.password === hash.md5(password).digest().toString('hex')) {
             let signature = jws.sign({
                 alg: "RS512"
             }, {
