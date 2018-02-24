@@ -2,7 +2,6 @@ const uuid = require('uuid');
 const http = require('http');
 const hash = require('hash');
 const fs = require('fs');
-const hash = require('hash');
 const path = require('path');
 const jws = require('fib-jws');
 const rados = require('./rados');
