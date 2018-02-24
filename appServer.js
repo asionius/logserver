@@ -69,6 +69,8 @@ let svr = new http.Server(config.server.port, [(v) => {
         let servers = form.servers;
         let timeRange = form.timeRange;
         let content = form.content;
+        let generateDownloadFile = form.generateDownloadFile;
+
         if (!servers || servers.length === 0) {
             let errMsg = "search: servers is null"
             console.error(errMsg)
@@ -94,9 +96,12 @@ let svr = new http.Server(config.server.port, [(v) => {
             });
         }
         let ret = rados.search(servers, timeRange, content);
+        let res = ret.join('\n');
+        if (generateDownloadFile)
+            fs.writeFile(path.join(__dirname, 'public/result.txt'), res);
         response(v, {
             code: 0,
-            data: ret.join('\n')
+            data: res
         });
     },
     '*': (v) => [http.fileHandler('./public'),

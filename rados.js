@@ -70,18 +70,22 @@ function search(servers, timeRange, content) {
             ms = new io.MemoryStream();
             uzs = zlib.createGunzip(ms);
             // console.log(`stream size: ${stream.size()}`);
-            while (stream.copyTo(uzs, 1000000) !== 0) {
-                sum += len;
-                // console.log(`sum: ${sum}`)
-                ms.seek(pos, fs.SEEK_SET);
-                buf = ms.read();
-                pos = ms.tell();
-                let hsRes = hsReg.scan(buf);
-                if (!hsRes)
-                    continue;
-                hsRes[content].forEach((pair) => {
-                    ret.push(buf.slice(pair[0], pair[1]).toString());
-                })
+            try {
+                while (stream.copyTo(uzs, 1000000) !== 0) {
+                    sum += len;
+                    // console.log(`sum: ${sum}`)
+                    ms.seek(pos, fs.SEEK_SET);
+                    buf = ms.read();
+                    pos = ms.tell();
+                    let hsRes = hsReg.scan(buf);
+                    if (!hsRes)
+                        continue;
+                    hsRes[content].forEach((pair) => {
+                        ret.push(buf.slice(pair[0], pair[1]).toString());
+                    })
+                }
+            } catch (e) {
+                console.error(e)
             }
             ms.close();
             uzs.close();
