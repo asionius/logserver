@@ -21,6 +21,13 @@ let svr = new http.Server(config.server.port, [(v) => {
     v.jws = jws;
 }, {
     '/_signup': (v) => {
+        if (!v.jws || !jws.verify(v.jws, pubPem)) {
+            response(v, {
+                code: 3000,
+                msg: "need login"
+            })
+            return;
+        }
         let form = v.json();
         let username = form.username;
         let phone = form.phone;
@@ -98,8 +105,7 @@ let svr = new http.Server(config.server.port, [(v) => {
         }
         let ret = rados.search(servers, timeRange, content);
         let res = ret.join('\n');
-        if (generateDownloadFile)
-        {
+        if (generateDownloadFile) {
             fs.writeFile(path.join(__dirname, 'public/result.txt'), res);
             response(v, {
                 code: 0
