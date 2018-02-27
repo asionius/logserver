@@ -9,32 +9,53 @@ const config = require('./config');
 
 let privPem = fs.readFile('./pem/rsa_private_key.pem');
 let pubPem = fs.readFile('./pem/rsa_public_key.pem');
-let sessionStorage = {};
+let sessionStorage = new util.LruCache(1000000, 1000 * 60 * 60 * 24 * 7);
 let response = (v, data) => {
     v.response.write(typeof (data) === 'object' ? JSON.stringify(data) : data);
 }
 config.log.forEach((log) => {
     console.add(log);
 })
+
 let svr = new http.Server(config.server.port, [(v) => {
-    let jws = v.cookies['jws'];
-    v.jws = jws;
+    let jwt = v.cookies['jwt'];
+    v.jwt = jwt;
 }, {
     '/_signup': (v) => {
-        if (!v.jws || !jws.verify(v.jws, pubPem)) {
-            response(v, {
-                code: 3000,
-                msg: "need login"
-            })
-            return;
-        }
         let form = v.json();
         let username = form.username;
         let phone = form.phone;
         let password = form.password;
+        let admin = false;
+        if (username === 'administrator') {
+            admin = true;
+        } else {
+            let jwt = v.jwt;
+            let session = sessionStorage.get(jwt);
+            if (!session) {
+                if (!jwt || !jws.verify(jwt, pubPem)) {
+                    response(v, {
+                        code: 3000,
+                        msg: "need login"
+                    })
+                    return;
+                }
+                let ss = jwt.split('.');
+                let payload = JSON.parse(decodeURI(ss[1]));
+                sessionStorage.set(jwt, payload);
+            }
+            if (!session.isadmin) {
+                response({
+                    code: 4000,
+                    msg: "not permit"
+                })
+                return;
+            }
+        }
         rados.setUser(username, {
             password: hash.md5(password).digest().toString('hex'),
-            phone: phone
+            phone: phone,
+            isadmin: admin
         })
         response(v, {
             code: 0,
@@ -50,9 +71,10 @@ let svr = new http.Server(config.server.port, [(v) => {
             let signature = jws.sign({
                 alg: "RS512"
             }, {
-                username: username
+                username: username,
+                isadmin: userInfo.isadmin
             }, privPem);
-            v.response.addHeader('set-Cookie', "jws=" + signature + "; Expires=" + new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toGMTString() + "; path=/; domain=" + config.server.domain);
+            v.response.addHeader('set-Cookie', "jwt=" + signature + "; Expires=" + new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toGMTString() + "; path=/; domain=" + config.server.domain);
             response(v, {
                 code: 0,
                 msg: "success"
@@ -66,12 +88,19 @@ let svr = new http.Server(config.server.port, [(v) => {
         })
     },
     '/_search': (v) => {
-        if (!v.jws || !jws.verify(v.jws, pubPem)) {
-            response(v, {
-                code: 3000,
-                msg: "need login"
-            })
-            return;
+        let jwt = v.jwt;
+        let session = sessionStorage.get(jwt);
+        if (!session) {
+            if (!jwt || !jws.verify(jwt, pubPem)) {
+                response(v, {
+                    code: 3000,
+                    msg: "need login"
+                })
+                return;
+            }
+            let ss = jwt.split('.');
+            let payload = JSON.parse(decodeURI(ss[1]));
+            sessionStorage.set(jwt, payload);
         }
         let form = v.json();
         let servers = form.servers;
