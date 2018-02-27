@@ -43,6 +43,7 @@ let svr = new http.Server(config.server.port, [(v) => {
                 }
                 let o = jws.decode(jwt);
                 sessionStorage.set(jwt, o.payload);
+                session = o.payload;
             }
             if (!session.isadmin) {
                 response({
