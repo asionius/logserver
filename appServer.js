@@ -3,6 +3,7 @@ const http = require('http');
 const hash = require('hash');
 const fs = require('fs');
 const path = require('path');
+const util = require('util');
 const jws = require('fib-jws');
 const rados = require('./rados');
 const config = require('./config');
