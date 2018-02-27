@@ -41,9 +41,8 @@ let svr = new http.Server(config.server.port, [(v) => {
                     })
                     return;
                 }
-                let ss = jwt.split('.');
-                let payload = JSON.parse(decodeURI(ss[1]));
-                sessionStorage.set(jwt, payload);
+                let o = jws.decode(jwt);
+                sessionStorage.set(jwt, o.payload);
             }
             if (!session.isadmin) {
                 response({
@@ -106,9 +105,8 @@ let svr = new http.Server(config.server.port, [(v) => {
                 })
                 return;
             }
-            let ss = jwt.split('.');
-            let payload = JSON.parse(decodeURI(ss[1]));
-            sessionStorage.set(jwt, payload);
+            let o = jws.decode(jwt)
+            sessionStorage.set(jwt, o.payload);
         }
         let form = v.json();
         let servers = form.servers;
