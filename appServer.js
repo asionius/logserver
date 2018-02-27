@@ -46,7 +46,7 @@ let svr = new http.Server(config.server.port, [(v) => {
                 session = o.payload;
             }
             if (!session.isadmin) {
-                response({
+                response(v, {
                     code: 4000,
                     msg: "not permit"
                 })

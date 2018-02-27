@@ -7,8 +7,6 @@ const pool = require('fib-pool');
 const zlib = require('zlib');
 require('./dateFormat');
 
-let eolReg = hs.compile("\n", "L");
-
 let cluster = new rados.Rados(config.clustername, config.username, config.conf);
 cluster.connect();
 
