@@ -53,6 +53,13 @@ let svr = new http.Server(config.server.port, [(v) => {
                 return;
             }
         }
+        if(rados.getUser(username)) {
+            response({
+                code: 5000,
+                msg: "username already exists"
+            })
+            return;
+        }
         rados.setUser(username, {
             password: hash.md5(password).digest().toString('hex'),
             phone: phone,
