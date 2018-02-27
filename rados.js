@@ -23,7 +23,13 @@ function getUser(username) {
     let stream = authPool((conn) => {
         return conn.open(username);
     })
-    let buf = stream.read();
+    let buf;
+    try {
+        buf = stream.read();
+    } catch(err) {
+        stream.close();
+        return null;
+    }
     stream.close();
     if (buf) return JSON.parse(buf.toString());
     else return null;
